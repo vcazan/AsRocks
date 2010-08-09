@@ -8,6 +8,7 @@ package
 	// Species: trace(myXML.column.specimen.en.species);
 	// Images: trace(myXML.column.specimen.images);
 	// Video: trace(myXML.column.specimen.video);
+	//Specifit video trace(myXML.column[0].specimen[0].video.flv);
 	
 	public class AsRocks extends Sprite
 	{
@@ -20,7 +21,7 @@ package
 			
 			function processXML(e:Event):void {
 				myXML = new XML(e.target.data);
-				trace(myXML.column.specimen.video);
+				trace(myXML.column[0].specimen[0].video.flv);
 			}	
 		}
 	}
