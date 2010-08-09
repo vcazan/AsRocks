@@ -4,9 +4,6 @@ package
 	import flash.events.*;
 	import flash.net.*;
 	
-	
-	
-	
 	//Calls for the xml file that will get the right info
 	// Species: trace(myXML.column.specimen.en.species);
 	// Images: trace(myXML.column.specimen.images);
