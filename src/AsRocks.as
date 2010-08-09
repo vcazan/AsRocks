@@ -19,7 +19,7 @@ package
 		public function AsRocks()
 		{
 			var myLoader:URLLoader = new URLLoader();
-			myLoader.load(new URLRequest("../../Case1/case1.xml"));
+			myLoader.load(new URLRequest("../../../Case1/case1.xml"));
 			myLoader.addEventListener(Event.COMPLETE, processXML);
 			
 			addChild(textArea);
@@ -31,11 +31,17 @@ package
 		}
 		
 		private function dataLoaded():void{
-			var imageURLRequest:URLRequest = new URLRequest("../../Case1/images/specimens/preview/" + myXML.column[0].specimen[0].images.full); 
+			var imageURLRequest:URLRequest = new URLRequest("../../../Case1/images/specimens/preview/" + myXML.column[2].specimen[0].images.full); 
 			var myImageLoader:Loader = new Loader(); 
-			myImageLoader.load(imageURLRequest); 
-			
-			textArea.species.text = myXML.column[0].specimen[0].en.species;
+			myImageLoader.load(imageURLRequest);
+			var x:int;
+			for (x=0; x <= 5;x++){
+				trace(x);
+			textArea.species.text = myXML.column[0].specimen[x].en.species;
+			textArea.acquiredin.text = myXML.column[0].specimen[x].en.country;
+			textArea.formula.text = myXML.column[0].specimen[x].all.formula;
+			textArea.features.text = myXML.column[0].specimen[x].en.feature;
+			}
 			
 			myImageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoaded); 
 			function imageLoaded(e:Event):void { 
@@ -43,6 +49,8 @@ package
 				   myBitmapData.draw(myImageLoader); 
 				   var myBitmap:Bitmap = new Bitmap; 
 				   myBitmap.bitmapData = myBitmapData; 
+				
+				
 				myBitmap.x = 69.95;
 				myBitmap.y = 137.40;
 				myBitmap.width = 257.15;
