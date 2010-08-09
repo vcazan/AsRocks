@@ -4,6 +4,14 @@ package
 	import flash.events.*;
 	import flash.net.*;
 	
+	
+	
+	
+	//Calls for the xml file that will get the right info
+	// Species: trace(myXML.column.specimen.en.species);
+	// Images: trace(myXML.column.specimen.images);
+	// Video: trace(myXML.column.specimen.video);
+	
 	public class AsRocks extends Sprite
 	{
 		public function AsRocks()
@@ -15,7 +23,7 @@ package
 			
 			function processXML(e:Event):void {
 				myXML = new XML(e.target.data);
-				trace(myXML.column[2].@id);
+				trace(myXML.column.specimen.video);
 			}	
 		}
 	}
