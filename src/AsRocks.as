@@ -1,5 +1,6 @@
 package
 {
+	import flash.display.*;
 	import flash.display.Sprite;
 	import flash.events.*;
 	import flash.net.*;
@@ -12,17 +13,34 @@ package
 	
 	public class AsRocks extends Sprite
 	{
+		private var myXML:XML;
+	
 		public function AsRocks()
 		{
-			var myXML:XML;
 			var myLoader:URLLoader = new URLLoader();
-			myLoader.load(new URLRequest("../casedata/case1.xml"));
+			myLoader.load(new URLRequest("../../Case1/case1.xml"));
 			myLoader.addEventListener(Event.COMPLETE, processXML);
 			
 			function processXML(e:Event):void {
 				myXML = new XML(e.target.data);
-				trace(myXML.column[0].specimen[0].video.flv);
-			}	
+				dataLoaded();
+			}
 		}
+		
+		private function dataLoaded():void{
+			var imageURLRequest:URLRequest = new URLRequest("../../Case1/images/specimens/preview/" + myXML.column[0].specimen[0].images.full); 
+			var myImageLoader:Loader = new Loader(); 
+			myImageLoader.load(imageURLRequest); 
+			
+			myImageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoaded); 
+			function imageLoaded(e:Event):void { 
+				   var myBitmapData:BitmapData = new BitmapData(myImageLoader.width, myImageLoader.height); 
+				   myBitmapData.draw(myImageLoader); 
+				   var myBitmap:Bitmap = new Bitmap; 
+				   myBitmap.bitmapData = myBitmapData; 
+				   addChild(myBitmap); 
+			} 
+		}
+		
 	}
 }
