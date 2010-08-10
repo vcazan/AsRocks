@@ -5,13 +5,41 @@
 	import flash.events.*;
 	import flash.net.*;
 	
+	import flash.display.Bitmap;
+	import flash.display.BitmapData;
+	import flash.display.Graphics;
+	import flash.display.MovieClip;
+	import flash.display.Shape;
+	import flash.display.Sprite;
+	import flash.events.Event;
+	import flash.events.MouseEvent;
+	import flash.geom.Matrix;
+	import flash.geom.Point;
+	import flash.geom.Rectangle;
+	import flash.utils.ByteArray;
+	
+	import ru.inspirit.surf.ASSURF;
+	import ru.inspirit.surf.IPoint;
+	import ru.inspirit.surf.SURFOptions;
+	import ru.inspirit.surf_example.FlashSURFExample;
+	import ru.inspirit.surf_example.MatchElement;
+	import ru.inspirit.surf_example.MatchList;
+	import ru.inspirit.surf_example.utils.QuasimondoImageProcessor;
+	import ru.inspirit.surf_example.utils.SURFUtils;
+	
+	import com.bit101.components.CheckBox;
+	import com.bit101.components.HUISlider;
+	import com.bit101.components.Label;
+	import com.bit101.components.PushButton;
+	import com.quasimondo.bitmapdata.CameraBitmap;
+	
 	//Calls for the xml file that will get the right info
 	// Species: trace(myXML.column.specimen.en.species);
 	// Images: trace(myXML.column.specimen.images);
 	// Video: trace(myXML.column.specimen.video);
 	//Specifit video trace(myXML.column[0].specimen[0].video.flv);
 	
-	public class AsRocks extends Sprite
+	public class AsRocks extends FlashSURFExample
 	{
 		private var myXML:XML;
 		private var textArea:MovieClip = new infotext() as MovieClip;	
@@ -20,7 +48,6 @@
 		private var menuBar1:Sprite = new Sprite();
 		private var fullrez:Sprite = new Sprite();
 		private var smallrez:Sprite = new Sprite();
-
 		
 		private var c =0;
 		private var s =0;
@@ -28,6 +55,27 @@
 		private var pageNum;
 		private var size:String;
 		
+		public static const SCALE:Number = 1.5;
+		public static const INVSCALE:Number = 1 / SCALE;
+		
+		public static const SCALE_MAT:Matrix = new Matrix(1/SCALE, 0, 0, 1/SCALE, 0, 0);
+		public static const ORIGIN:Point = new Point();
+		
+		public var surf:ASSURF;
+		public var surfOptions:SURFOptions;
+		public var quasimondoProcessor:QuasimondoImageProcessor;
+		public var buffer:BitmapData;
+		public var autoCorrect:Boolean = false;
+		
+		public var matchList:MatchList;
+
+		
+		protected var view:Sprite;
+		protected var camera:CameraBitmap;
+		protected var overlay:Shape;
+		protected var screenBmp:Bitmap;
+		protected var matchView:Sprite;
+
 
 		public function AsRocks()
 		{
@@ -55,9 +103,58 @@
 				dataLoadRequest();
 			}
 			imageArea.addEventListener(MouseEvent.CLICK, enlargeButton);
+			
+			view = new Sprite();
+			view.y = 80;
+			view.x = 680;
+			
+			screenBmp = new Bitmap();
+			view.addChild(screenBmp);
+			
+			matchView = new Sprite();
+			matchView.x = 640;
+			view.addChild(matchView);
+			
+			overlay = new Shape();
+			view.addChild(overlay);
+
+			camera = new CameraBitmap(320, 240, 15, false);
+			
+			screenBmp.bitmapData = camera.bitmapData;
+			
+			surfOptions = new SURFOptions(int(320 / SCALE), int(240 / SCALE), 200, 0.003, true, 4, 4, 2);
+			surf = new ASSURF(surfOptions);
+			
+			surf.pointMatchFactor = 5.5;
+			
+			buffer = new BitmapData(surfOptions.width, surfOptions.height, false, 0x00);
+			buffer.lock();
+			
+			quasimondoProcessor = new QuasimondoImageProcessor(buffer.rect);
+			
+			//addChild(view);
+			
+			matchList = new MatchList(surf);
+			
+			camera.addEventListener(Event.RENDER, render);
 
 		}
 		
+		protected function render( e:Event ) : void
+		{
+			var gfx:Graphics = overlay.graphics;
+			
+			buffer.draw(camera.bitmapData, SCALE_MAT);
+			
+			var ipts:Vector.<IPoint> = surf.getInterestPoints(buffer);
+			gfx.clear();
+			SURFUtils.drawIPoints(gfx, ipts, SCALE);
+			
+			var matched:Vector.<MatchElement> = matchList.getMatches();
+			
+			SURFUtils.drawMatchedBitmaps(matched, matchView);
+		}
+
 		private function dataLoadRequest():void{
 			
 			loadImage(69.95,137.40,257.15,257.15,"../../../Case1/images/specimens/preview/" + myXML.column[c].specimen[s].images.full);
