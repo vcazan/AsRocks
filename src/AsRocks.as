@@ -1,21 +1,25 @@
 ﻿package
 {
-	import flash.display.*;
-	import flash.display.Sprite;
-	import flash.events.*;
-	import flash.net.*;
+	import com.bit101.components.CheckBox;
+	import com.bit101.components.HUISlider;
+	import com.bit101.components.Label;
+	import com.bit101.components.PushButton;
+	import com.quasimondo.bitmapdata.CameraBitmap;
 	
+	import flash.display.*;
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
 	import flash.display.Graphics;
 	import flash.display.MovieClip;
 	import flash.display.Shape;
 	import flash.display.Sprite;
+	import flash.events.*;
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
+	import flash.net.*;
 	import flash.utils.ByteArray;
 	
 	import ru.inspirit.surf.ASSURF;
@@ -26,12 +30,6 @@
 	import ru.inspirit.surf_example.MatchList;
 	import ru.inspirit.surf_example.utils.QuasimondoImageProcessor;
 	import ru.inspirit.surf_example.utils.SURFUtils;
-	
-	import com.bit101.components.CheckBox;
-	import com.bit101.components.HUISlider;
-	import com.bit101.components.Label;
-	import com.bit101.components.PushButton;
-	import com.quasimondo.bitmapdata.CameraBitmap;
 	
 	//Calls for the xml file that will get the right info
 	// Species: trace(myXML.column.specimen.en.species);
@@ -48,9 +46,12 @@
 		private var menuBar1:Sprite = new Sprite();
 		private var fullrez:Sprite = new Sprite();
 		private var smallrez:Sprite = new Sprite();
+		private var mainScreen:Sprite = new Sprite();
 		
 		private var c =0;
 		private var s =0;
+		
+		private var rockNum;
 		
 		private var pageNum;
 		private var size:String;
@@ -75,12 +76,14 @@
 		protected var overlay:Shape;
 		protected var screenBmp:Bitmap;
 		protected var matchView:Sprite;
+		
+		protected var matchName:Array = new Array();
 
 		public function AsRocks()
 		{
 
 		//	SURFUtils.openPointsDataFile(loadPointsDone);
-
+			
 			
 			var myLoader:URLLoader = new URLLoader();
 			myLoader.load(new URLRequest("../../../Case2/case2.xml"));
@@ -104,7 +107,8 @@
 			function processXML(e:Event):void {
 				
 				myXML = new XML(e.target.data);
-				dataLoadRequest();
+				loadAll();
+				//dataLoadRequest();
 			}
 			
 			imageArea.addEventListener(MouseEvent.CLICK, enlargeButton);
@@ -142,7 +146,7 @@
 			
 			matchList = new MatchList(surf);
 			
-			camera.addEventListener(Event.RENDER, render);
+			camera.addEventListener(Event.RENDER, render);z
 			
 		}
 		
@@ -159,6 +163,25 @@
 			var matched:Vector.<MatchElement> = matchList.getMatches();
 			
 			SURFUtils.drawMatchedBitmaps(matched, matchView);
+
+		}
+
+		private function loadAll():void{
+		c=0;
+		s=0;
+		pageNum = 0;
+
+			for (var y=0; y<=3;y++){
+				
+				for (var x=0;x<=8;x++){
+					loadImage(25 + (x*110),100+(y*110),100,100,"../../../Case2/images/specimens/preview/" + myXML.column[c].specimen[s].images.full);
+					s++;
+
+				}
+				c++;
+				s = 0;
+			}
+			addChild(mainScreen);
 		}
 
 		private function dataLoadRequest():void{
@@ -191,33 +214,47 @@
 		{
 			var imageURLRequest:URLRequest = new URLRequest(url); 
 			var myImageLoader:Loader = new Loader(); 
+			
 			myImageLoader.load(imageURLRequest);
 			myImageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoaded);
 			
-			trace(pageNum + "    " + size);
 
 			function imageLoaded(e:Event):void { 
 				
-			var myBitmapData:BitmapData = new BitmapData(myImageLoader.width, myImageLoader.height); 
-			myBitmapData.draw(myImageLoader); 
-			var myBitmap:Bitmap = new Bitmap; 
-			myBitmap.bitmapData = myBitmapData; 
-			
-			if (pageNum == 1){
-				smallrez.addChild(myBitmap);
-			}else{
-				fullrez.addChild(myBitmap);
-			}
-			fullrez.useHandCursor = true;
-			myBitmap.x = x;
-			myBitmap.y = y;
-			
-				if (width != 0){
-					myBitmap.width = width;
-					myBitmap.height = height;
-				}
+				var myBitmapData:BitmapData = new BitmapData(myImageLoader.width, myImageLoader.height); 
+				myBitmapData.draw(myImageLoader); 
+				var myBitmap:Bitmap = new Bitmap; 
+				var mySprite:Sprite = new Sprite();
 				
-			}
+				rockNum = (c*8)+s;
+				
+				myBitmap.bitmapData = myBitmapData; 
+				matchName.push(mySprite.name);
+trace(matchName.length);
+				mySprite.addChild(myBitmap);
+
+				mySprite.addEventListener(MouseEvent.CLICK, clickMatch);
+
+				
+				if (pageNum == 1){
+					smallrez.addChild(myBitmap);
+				}
+				if( pageNum == 2){
+					fullrez.addChild(myBitmap);
+				}
+				if( pageNum == 0){
+					mainScreen.addChild(mySprite);
+				}
+				fullrez.useHandCursor = true;
+				myBitmap.x = x;
+				myBitmap.y = y;
+				
+					if (width != 0){
+						myBitmap.width = width;
+						myBitmap.height = height;
+					}
+					
+				}
 		}
 		
 
@@ -249,10 +286,18 @@
 				menuArea.page2.alpha = 0.22;
 				
 				pageNum = 1;
-				//menuBar1.addEventListener(MouseEvent.CLICK, nextRock);
+				menuBar1.addEventListener(MouseEvent.CLICK, nextRock);
 
 			}
 
+		}
+		private function clickMatch(event:MouseEvent):void {
+			var x = 0;
+			for (x;x<=36;x++){
+				if (event.currentTarget.name == matchName[x]){
+					trace("CLICKED: " + x);
+				}
+			}
 		}
 
 		private function mouseDownHandler(event:MouseEvent):void {
