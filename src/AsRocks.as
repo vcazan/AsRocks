@@ -76,11 +76,14 @@
 		protected var screenBmp:Bitmap;
 		protected var matchView:Sprite;
 
-
 		public function AsRocks()
 		{
+
+		//	SURFUtils.openPointsDataFile(loadPointsDone);
+
+			
 			var myLoader:URLLoader = new URLLoader();
-			myLoader.load(new URLRequest("../../../Case1/case1.xml"));
+			myLoader.load(new URLRequest("../../../Case2/case2.xml"));
 			myLoader.addEventListener(Event.COMPLETE, processXML);
 			
 			pageNum = 1;
@@ -88,7 +91,6 @@
 			menuBar1.addEventListener(MouseEvent.CLICK, nextRock);
 			fullrez.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
 			fullrez.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
-
 			
 			addChild(textArea);
 			addChild(smallrez);
@@ -98,10 +100,13 @@
 			addChild(imageArea);
 			
 			menuBar1.addChild(menuArea);
+			
 			function processXML(e:Event):void {
+				
 				myXML = new XML(e.target.data);
 				dataLoadRequest();
 			}
+			
 			imageArea.addEventListener(MouseEvent.CLICK, enlargeButton);
 			
 			view = new Sprite();
@@ -126,18 +131,19 @@
 			surf = new ASSURF(surfOptions);
 			
 			surf.pointMatchFactor = 5.5;
+			surf.pointsThreshold = 0.001 //Numbers have been tested and seem the best for our application
+			surf.pointMatchFactor = 0.45;
 			
 			buffer = new BitmapData(surfOptions.width, surfOptions.height, false, 0x00);
 			buffer.lock();
 			
 			quasimondoProcessor = new QuasimondoImageProcessor(buffer.rect);
-			
 			//addChild(view);
 			
 			matchList = new MatchList(surf);
 			
 			camera.addEventListener(Event.RENDER, render);
-
+			
 		}
 		
 		protected function render( e:Event ) : void
@@ -157,7 +163,7 @@
 
 		private function dataLoadRequest():void{
 			
-			loadImage(69.95,137.40,257.15,257.15,"../../../Case1/images/specimens/preview/" + myXML.column[c].specimen[s].images.full);
+			loadImage(69.95,137.40,257.15,257.15,"../../../Case2/images/specimens/preview/" + myXML.column[c].specimen[s].images.full);
 
 			textArea.species.text = myXML.column[c].specimen[s].en.species;
 			textArea.acquiredin.text = myXML.column[c].specimen[s].en.country;
@@ -167,7 +173,7 @@
 		}
 		private function enlargeButton(event:MouseEvent):void {
 			removeChild(imageArea);
-			menuBar1.removeEventListener(MouseEvent.CLICK, nextRock);
+			//menuBar1.removeEventListener(MouseEvent.CLICK, nextRock);
 			
 			removeChild(smallrez);
 			
@@ -177,7 +183,7 @@
 			pageNum = 2;
 			
 
-			var URL = "../../../Case1/images/specimens/full_res/" + myXML.column[c].specimen[s].images.full;
+			var URL = "../../../Case2/images/specimens/full_res/" + myXML.column[c].specimen[s].images.full;
 			loadImage((stage.width-768)/2,0,768,768,URL);
 			fullrez.visible = true;
 		}
@@ -191,6 +197,7 @@
 			trace(pageNum + "    " + size);
 
 			function imageLoaded(e:Event):void { 
+				
 			var myBitmapData:BitmapData = new BitmapData(myImageLoader.width, myImageLoader.height); 
 			myBitmapData.draw(myImageLoader); 
 			var myBitmap:Bitmap = new Bitmap; 
@@ -201,13 +208,15 @@
 			}else{
 				fullrez.addChild(myBitmap);
 			}
-			
+			fullrez.useHandCursor = true;
 			myBitmap.x = x;
 			myBitmap.y = y;
+			
 				if (width != 0){
 					myBitmap.width = width;
 					myBitmap.height = height;
 				}
+				
 			}
 		}
 		
@@ -240,6 +249,8 @@
 				menuArea.page2.alpha = 0.22;
 				
 				pageNum = 1;
+				//menuBar1.addEventListener(MouseEvent.CLICK, nextRock);
+
 			}
 
 		}
@@ -255,6 +266,13 @@
 			fullrez.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
 			fullrez.stopDrag();
 		}
-		
+		protected function loadPointsDone(data:ByteArray):void 
+		{		
+			matchList.initListFromByteArray(data);
+		}
+		protected function onLoadList(e:Event):void 
+		{
+			SURFUtils.openPointsDataFile(loadPointsDone);
+		}
 	}
 }
