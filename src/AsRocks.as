@@ -76,33 +76,39 @@
 		protected var overlay:Shape;
 		protected var screenBmp:Bitmap;
 		protected var matchView:Sprite;
+				
+		protected var matchName = new Array(4);
+
 		
-		protected var matchName:Array = [];
-		var sync=1;
 		public function AsRocks()
 		{
-
+			for(var i:int = 0; i < matchName.length; i++) {
+				matchName[i] = new Array(9);
+			}
 		//	SURFUtils.openPointsDataFile(loadPointsDone);
-			
+
 			
 			var myLoader:URLLoader = new URLLoader();
-			myLoader.load(new URLRequest("../../../Case2/case2.xml"));
+			myLoader.load(new URLRequest("../../../Case1/case1.xml"));
 			myLoader.addEventListener(Event.COMPLETE, processXML);
 			
-			pageNum = 1;
-			menuArea.page1.addEventListener(MouseEvent.CLICK, pageClick);
-			menuBar1.addEventListener(MouseEvent.CLICK, nextRock);
-			fullrez.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
-			fullrez.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+			pageNum = 0;
 			
 			addChild(textArea);
+			
+			
 			addChild(smallrez);
-
-			addChild(fullrez);
-			addChild(menuBar1);
 			addChild(imageArea);
 			
+			addChild(fullrez);
+			
+			addChild(mainScreen);
 			menuBar1.addChild(menuArea);
+			addChild(menuBar1);
+
+			mainScreen.graphics.beginFill(0,1);
+			mainScreen.graphics.drawRect(0,79.60,2000,2000);
+
 			
 			function processXML(e:Event):void {
 				
@@ -111,6 +117,8 @@
 				//dataLoadRequest();
 			}
 			
+			menuArea.page1.addEventListener(MouseEvent.CLICK, page1Click);
+			menuArea.page3.addEventListener(MouseEvent.CLICK, page3Click);
 			imageArea.addEventListener(MouseEvent.CLICK, enlargeButton);
 			
 			view = new Sprite();
@@ -146,7 +154,7 @@
 			
 			matchList = new MatchList(surf);
 			
-			camera.addEventListener(Event.RENDER, render);z
+			camera.addEventListener(Event.RENDER, render);
 			
 		}
 		
@@ -167,50 +175,57 @@
 		}
 
 		private function loadAll():void{
-		c=0;
-		s=0;
-		pageNum = 0;
-		
+			c=0;
+			s=0;
+			pageNum = 0;
+			mainScreen.visible = true;
 
 			for (var y=0; y<=3;y++){
-				
 				for (var x=0;x<=8;x++){
-
-					loadImage(25 + (x*110),100+(y*110),100,100,"../../../Case2/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
+					loadImage(25 + (x*110),100+(y*110),100,100,"../../../Case1/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
 					s++;
-					
 				}
 				c++;
 				s = 0;
 			}
-			addChild(mainScreen);
+			menuArea.page3.alpha = 1;
+			menuArea.page1.alpha = 0.22;
+			menuArea.page2.alpha = 0.22;
+			
 		}
 
 		private function dataLoadRequest():void{
 			
-			loadImage(69.95,137.40,257.15,257.15,"../../../Case2/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
+			loadImage(69.95,137.40,257.15,257.15,"../../../Case1/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
 
 			textArea.species.text = myXML.column[c].specimen[s].en.species;
-			textArea.acquiredin.text = myXML.column[c].specimen[s].en.country;
+			
+			textArea.acquiredin.text = myXML.column[c].specimen[s].en.province + ", "+ myXML.column[c].specimen[s].en.country;
+
 			textArea.formula.text = myXML.column[c].specimen[s].all.formula;
 			textArea.features.text = myXML.column[c].specimen[s].en.feature;
 			textArea.catname.text = myXML.column[c].specimen[s].all.catnum;
 		}
 		private function enlargeButton(event:MouseEvent):void {
-			removeChild(imageArea);
+
 			//menuBar1.removeEventListener(MouseEvent.CLICK, nextRock);
 			
-			removeChild(smallrez);
+			
 			
 			menuArea.page1.alpha = 0.22;
 			menuArea.page2.alpha = 1;
+			menuArea.page3.alpha = 0.22;
 			
 			pageNum = 2;
 			
 
-			var URL = "../../../Case2/images/specimens/full_res/" + myXML.column[c].specimen[s].images.full;
-			loadImage((stage.width-768)/2,0,768,768,URL,c,s);
+			var URL = "../../../Case1/images/specimens/full_res/" + myXML.column[c].specimen[s].images.full;
+			
+			loadImage(128,75,768,768,URL,c,s);
+			
 			fullrez.visible = true;
+			smallrez.visible =false;
+			imageArea.visible = false;
 		}
 		private function loadImage(x:int,y:int,width:int,height:int,url:String,c:int,s:int):void
 		{
@@ -230,19 +245,18 @@
 				var myBitmapData:BitmapData = new BitmapData(myImageLoader.width, myImageLoader.height); 
 				
 				myBitmapData.draw(myImageLoader); 
-				
-				
 
 				myBitmap.bitmapData = myBitmapData;
 				
 				mySprite.addChild(myBitmap);
 				
 				rockNum = (c*8)+s;
+				
 				trace(c + " " + s);
 
-				matchName[rockNum] = mySprite;
+				matchName[c][s] = mySprite;
 				
-				matchName[rockNum].addEventListener(MouseEvent.CLICK, clickMatch);
+				matchName[c][s].addEventListener(MouseEvent.CLICK, clickMatch);
 
 				if (pageNum == 1){
 					smallrez.addChild(myBitmap);
@@ -251,7 +265,7 @@
 					fullrez.addChild(myBitmap);
 				}
 				if( pageNum == 0){
-					mainScreen.addChild(matchName[rockNum]);
+					mainScreen.addChild(matchName[c][s]);
 				}
 					fullrez.useHandCursor = true;
 				
@@ -278,55 +292,65 @@
 				s=0;	
 			}
 			s++
-
 			dataLoadRequest();
 			
 			imageArea.gotoAndPlay(1);
 			
 			trace("Specimin: " + s + " Column: " + c);
 		}
-		private function pageClick(event:MouseEvent):void {
+		
+		private function page1Click(event:MouseEvent):void {
 		page1();
 		
 		}
+		
+		private function page3Click(event:MouseEvent):void {
+			menuArea.page3.alpha = 1;
+			menuArea.page1.alpha = 0.22;
+			menuArea.page2.alpha = 0.22;
+			mainScreen.visible = true;
+			smallrez.visible = false;
+			imageArea.visible = false;
+			
+		}
+		
 		private function page1():void {
 
-			if (pageNum == 2 || pageNum == 3){
-				fullrez.visible = false;
+				pageNum = 1;
+				
+				imageArea.gotoAndPlay(1);
+				
+				trace("Loading: " + c + " " + s);
 
-				addChild(smallrez);
-				addChild(imageArea);
+				dataLoadRequest();
+
+				fullrez.visible = false;
+				smallrez.visible = true;
+				imageArea.visible = true;
+				mainScreen.visible = false;
 
 				menuArea.page1.alpha = 1;
 				menuArea.page2.alpha = 0.22;
+				menuArea.page3.alpha = 0.22;
 				
-				pageNum = 1;
-				menuBar1.addEventListener(MouseEvent.CLICK, nextRock);
 
-			}
 
 		}
+		
 		private function clickMatch(event:MouseEvent):void {
-			for (var x=0;x<=36;x++){
-				if (event.target == matchName[x]){
-					trace("CLICKED: " + x);
-					//mainScreen.visible = false;
+			for (var y=0; y<=3;y++){
+				
+				for (var x=0;x<=8;x++){
+				if (event.target == matchName[y][x]){
+					c = y;
+					s = x;
+					trace("CLICKED: " + y + " " + x);
 					page1();
+				}
 				}
 			}
 		}
 
-		private function mouseDownHandler(event:MouseEvent):void {
-			fullrez.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
-			fullrez.startDrag();
-		}
-		private function mouseMoveHandler(event:MouseEvent):void {
-			event.updateAfterEvent();
-		}
-		private function mouseUpHandler(event:MouseEvent):void {
-			fullrez.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
-			fullrez.stopDrag();
-		}
 		protected function loadPointsDone(data:ByteArray):void 
 		{		
 			matchList.initListFromByteArray(data);
