@@ -78,6 +78,8 @@
 		protected var matchView:Sprite;
 				
 		protected var matchName = new Array(4);
+		
+		protected var caseNum = "1"
 
 		
 		public function AsRocks()
@@ -85,11 +87,10 @@
 			for(var i:int = 0; i < matchName.length; i++) {
 				matchName[i] = new Array(9);
 			}
-		//	SURFUtils.openPointsDataFile(loadPointsDone);
 
 			
 			var myLoader:URLLoader = new URLLoader();
-			myLoader.load(new URLRequest("../../../Case1/case1.xml"));
+			myLoader.load(new URLRequest("../../../Case"+caseNum+"/Case"+caseNum+".xml"));
 			myLoader.addEventListener(Event.COMPLETE, processXML);
 			
 			pageNum = 0;
@@ -117,7 +118,7 @@
 				//dataLoadRequest();
 			}
 			
-			menuArea.page1.addEventListener(MouseEvent.CLICK, page1Click);
+			
 			menuArea.page3.addEventListener(MouseEvent.CLICK, page3Click);
 			imageArea.addEventListener(MouseEvent.CLICK, enlargeButton);
 			
@@ -156,6 +157,9 @@
 			
 			camera.addEventListener(Event.RENDER, render);
 			
+			//SURFUtils.openPointsDataFile(loadPointsDone);
+
+			
 		}
 		
 		protected function render( e:Event ) : void
@@ -181,8 +185,10 @@
 			mainScreen.visible = true;
 
 			for (var y=0; y<=3;y++){
-				for (var x=0;x<=8;x++){
-					loadImage(25 + (x*110),100+(y*110),100,100,"../../../Case1/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
+
+				for (var x=0;x< myXML.column[y].specimen.length();x++){
+					
+					loadImage(25 + (x*50),100+(y*50),50,50,"../../../Case"+caseNum+"/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
 					s++;
 				}
 				c++;
@@ -196,7 +202,7 @@
 
 		private function dataLoadRequest():void{
 			
-			loadImage(69.95,137.40,257.15,257.15,"../../../Case1/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
+			loadImage(69.95,137.40,257.15,257.15,"../../../Case"+caseNum+"/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
 
 			textArea.species.text = myXML.column[c].specimen[s].en.species;
 			
@@ -219,7 +225,7 @@
 			pageNum = 2;
 			
 
-			var URL = "../../../Case1/images/specimens/full_res/" + myXML.column[c].specimen[s].images.full;
+			var URL = "../../../Case"+caseNum+"/images/specimens/full_res/" + myXML.column[c].specimen[s].images.full;
 			
 			loadImage(128,75,768,768,URL,c,s);
 			
@@ -332,19 +338,18 @@
 				menuArea.page1.alpha = 1;
 				menuArea.page2.alpha = 0.22;
 				menuArea.page3.alpha = 0.22;
-				
-
 
 		}
 		
 		private function clickMatch(event:MouseEvent):void {
 			for (var y=0; y<=3;y++){
 				
-				for (var x=0;x<=8;x++){
+				for (var x=0;x<myXML.column[y].specimen.length();x++){
 				if (event.target == matchName[y][x]){
 					c = y;
 					s = x;
 					trace("CLICKED: " + y + " " + x);
+					menuArea.page1.addEventListener(MouseEvent.CLICK, page1Click);
 					page1();
 				}
 				}
