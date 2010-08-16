@@ -70,7 +70,6 @@
 		
 		public var matchList:MatchList;
 
-		
 		protected var view:Sprite;
 		protected var camera:CameraBitmap;
 		protected var overlay:Shape;
@@ -79,19 +78,17 @@
 				
 		protected var matchName = new Array(4);
 		
-		protected var caseNum = "1"
+		protected var caseNum = "1";
+		
+		protected var oldCase = 1;
 
 		
 		public function AsRocks()
 		{
+
 			for(var i:int = 0; i < matchName.length; i++) {
 				matchName[i] = new Array(9);
-			}
-
-			
-			var myLoader:URLLoader = new URLLoader();
-			myLoader.load(new URLRequest("../../../Case"+caseNum+"/Case"+caseNum+".xml"));
-			myLoader.addEventListener(Event.COMPLETE, processXML);
+			}	
 			
 			pageNum = 0;
 			
@@ -111,15 +108,9 @@
 			mainScreen.graphics.drawRect(0,79.60,2000,2000);
 
 			
-			function processXML(e:Event):void {
-				
-				myXML = new XML(e.target.data);
-				loadAll();
-				//dataLoadRequest();
-			}
-			
-			
 			menuArea.page3.addEventListener(MouseEvent.CLICK, page3Click);
+			menuArea.refresh.addEventListener(MouseEvent.CLICK, onLoadList);
+
 			imageArea.addEventListener(MouseEvent.CLICK, enlargeButton);
 			
 			view = new Sprite();
@@ -156,10 +147,37 @@
 			matchList = new MatchList(surf);
 			
 			camera.addEventListener(Event.RENDER, render);
-			
-			//SURFUtils.openPointsDataFile(loadPointsDone);
 
 			
+		}
+		
+		private function processXML(e:Event):void {
+			
+			myXML = new XML(e.target.data);
+			loadAll();
+			//dataLoadRequest();
+		}
+		private function loadPage():void{
+			
+			if (matchList.getMatchId() <= 3){
+				
+				caseNum = matchList.getMatchId() + 1;
+				
+				if (caseNum != oldCase){
+					
+					var myLoader:URLLoader = new URLLoader();
+					myLoader.load(new URLRequest("../../../Case"+caseNum+"/Case"+caseNum+".xml"));
+					myLoader.addEventListener(Event.COMPLETE, processXML);
+					
+					trace("../../../Case"+caseNum+"/Case"+caseNum+".xml");
+
+								
+				}
+				
+				
+				oldCase = caseNum;
+
+			}
 		}
 		
 		protected function render( e:Event ) : void
@@ -175,32 +193,36 @@
 			var matched:Vector.<MatchElement> = matchList.getMatches();
 			
 			SURFUtils.drawMatchedBitmaps(matched, matchView);
+			
+			loadPage();
 
 		}
 
 		private function loadAll():void{
-			c=0;
-			s=0;
+
 			pageNum = 0;
-			mainScreen.visible = true;
 
+			
 			for (var y=0; y<=3;y++){
-
-				for (var x=0;x< myXML.column[y].specimen.length();x++){
+				for (var x=0;x < myXML.column[y].specimen.length();x++){
 					
-					loadImage(25 + (x*50),100+(y*50),50,50,"../../../Case"+caseNum+"/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
+					loadImage(25 + (x*25),100+(y*25),20,20,"../../../Case"+caseNum+"/images/specimens/preview/" + myXML.column[y].specimen[x].images.full,y,x);
+					trace(myXML.column[y].specimen.length());
 					s++;
 				}
 				c++;
 				s = 0;
 			}
+			
 			menuArea.page3.alpha = 1;
 			menuArea.page1.alpha = 0.22;
-			menuArea.page2.alpha = 0.22;
+			menuArea.page2.alpha = 1;
 			
 		}
 
 		private function dataLoadRequest():void{
+			
+			if (s < myXML.column[c].specimen.length()){
 			
 			loadImage(69.95,137.40,257.15,257.15,"../../../Case"+caseNum+"/images/specimens/preview/" + myXML.column[c].specimen[s].images.full,c,s);
 
@@ -211,19 +233,17 @@
 			textArea.formula.text = myXML.column[c].specimen[s].all.formula;
 			textArea.features.text = myXML.column[c].specimen[s].en.feature;
 			textArea.catname.text = myXML.column[c].specimen[s].all.catnum;
+			}
 		}
 		private function enlargeButton(event:MouseEvent):void {
 
 			//menuBar1.removeEventListener(MouseEvent.CLICK, nextRock);
-			
-			
-			
+
 			menuArea.page1.alpha = 0.22;
 			menuArea.page2.alpha = 1;
-			menuArea.page3.alpha = 0.22;
+			menuArea.page3.alpha = 1;
 			
-			pageNum = 2;
-			
+			pageNum = 2;	
 
 			var URL = "../../../Case"+caseNum+"/images/specimens/full_res/" + myXML.column[c].specimen[s].images.full;
 			
@@ -245,13 +265,12 @@
 
 			myImageLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, imageLoaded);
 			
-
 			function imageLoaded(e:Event):void { 
 				
 				var myBitmapData:BitmapData = new BitmapData(myImageLoader.width, myImageLoader.height); 
 				
 				myBitmapData.draw(myImageLoader); 
-
+	
 				myBitmap.bitmapData = myBitmapData;
 				
 				mySprite.addChild(myBitmap);
@@ -259,11 +278,12 @@
 				rockNum = (c*8)+s;
 				
 				trace(c + " " + s);
-
+	
 				matchName[c][s] = mySprite;
 				
 				matchName[c][s].addEventListener(MouseEvent.CLICK, clickMatch);
-
+				
+	
 				if (pageNum == 1){
 					smallrez.addChild(myBitmap);
 				}
@@ -283,14 +303,14 @@
 						myBitmap.height = height;
 					}
 					
-
+	
 					
-				}
+			}
 		}
 		
 
-		private function nextRock(event:MouseEvent):void {
-			if (s == 8){
+		private function newRock():void {
+			if (s == myXML.column[c].specimen.length()){
 				c++;
 				if (c == 4){
 					c =0;	
@@ -304,16 +324,18 @@
 			
 			trace("Specimin: " + s + " Column: " + c);
 		}
+		private function nextRock(event:MouseEvent):void {
+			newRock();
+		}
 		
 		private function page1Click(event:MouseEvent):void {
-		page1();
-		
+			page1();
 		}
 		
 		private function page3Click(event:MouseEvent):void {
 			menuArea.page3.alpha = 1;
 			menuArea.page1.alpha = 0.22;
-			menuArea.page2.alpha = 0.22;
+			menuArea.page2.alpha = 1;
 			mainScreen.visible = true;
 			smallrez.visible = false;
 			imageArea.visible = false;
@@ -322,22 +344,22 @@
 		
 		private function page1():void {
 
-				pageNum = 1;
-				
-				imageArea.gotoAndPlay(1);
-				
-				trace("Loading: " + c + " " + s);
-
-				dataLoadRequest();
-
-				fullrez.visible = false;
-				smallrez.visible = true;
-				imageArea.visible = true;
-				mainScreen.visible = false;
-
-				menuArea.page1.alpha = 1;
-				menuArea.page2.alpha = 0.22;
-				menuArea.page3.alpha = 0.22;
+			pageNum = 1;
+			
+			imageArea.gotoAndPlay(1);
+			
+			trace("Loading: " + c + " " + s);
+		
+			dataLoadRequest();
+		
+			fullrez.visible = false;
+			smallrez.visible = true;
+			imageArea.visible = true;
+			mainScreen.visible = false;
+		
+			menuArea.page1.alpha = 1;
+			menuArea.page2.alpha = 0.22;
+			menuArea.page3.alpha = 1;
 
 		}
 		
@@ -356,13 +378,15 @@
 			}
 		}
 
-		protected function loadPointsDone(data:ByteArray):void 
-		{		
-			matchList.initListFromByteArray(data);
-		}
 		protected function onLoadList(e:Event):void 
 		{
 			SURFUtils.openPointsDataFile(loadPointsDone);
 		}
+		
+		protected function loadPointsDone(data:ByteArray):void 
+		{		
+			matchList.initListFromByteArray(data);
+		}
+		
 	}
 }

@@ -1,24 +1,28 @@
 package ru.inspirit.surf_example 
 {
-	import ru.inspirit.surf.SURFOptions;
-	import ru.inspirit.surf.ASSURF;
-	import ru.inspirit.surf.IPointMatch;
-
 	import flash.display.BitmapData;
 	import flash.geom.Rectangle;
 	import flash.utils.ByteArray;
-
+	import flash.display.MovieClip;
+	
+	
+	import ru.inspirit.surf.ASSURF;
+	import ru.inspirit.surf.IPointMatch;
+	import ru.inspirit.surf.SURFOptions;
+	
 	/**
 	 * Match list manager
 	 * 
 	 * @author Eugene Zatepyakin
 	 */
+	
+	
 	public final class MatchList 
 	{
 		public static const POINT_SIZE:int = 69 << 3;
 		
 		public static var MATCH_THRESHOLD:int = 4;
-		public static var DEFAUL_OPTIONS:SURFOptions = new SURFOptions(320, 240, 200, 0.004, true, 4, 4, 2);
+		public static var DEFAUL_OPTIONS:SURFOptions = new SURFOptions(640, 480, 200, 0.004, true, 3, 5, 5);
 		
 		public var surf:ASSURF;
 		
@@ -30,10 +34,13 @@ package ru.inspirit.surf_example
 		public var matchBundle:ByteArray;
 		public var writeBundleToMemory:Boolean;
 		
+		public var matchId:int;
+		public var matches:int;
+		
 		public function MatchList(surf:ASSURF)
 		{
 			this.surf = surf;
-			
+
 			elementsCount = pointsCount = 0;
 			elements = new Vector.<MatchElement>();
 			pointsMap = new Vector.<int>();
@@ -47,10 +54,14 @@ package ru.inspirit.surf_example
 			var i:int, ind:int = -1, n:int;
 			var el:MatchElement;
 			var matched:Vector.<MatchElement> = new Vector.<MatchElement>();
+			matchId = 666; ///666 Will mean that there is no file currently selected with points data
 			
 			if(elementsCount == 0) return matched;
+			else matchId = 999; //gets switched to 999 once we have a file loaded but no matches are on the screen
 			
 			n = elementsCount;
+			
+			
 			for( i = 0; i < n; ++i ) elements[i].matchCount = 0;
 			
 			var matchedPoints:Vector.<IPointMatch> = surf.getMatchesToPointsData(pointsCount, matchBundle, writeBundleToMemory);
@@ -69,6 +80,8 @@ package ru.inspirit.surf_example
 				
 				if(el.matchCount >= MATCH_THRESHOLD) 
 				{
+					matchId = i;
+					matches = el.matchCount;
 					matched[++ind] = el;
 				}
 			}
@@ -77,7 +90,14 @@ package ru.inspirit.surf_example
 			
 			return matched;
 		}
-		
+		public function matchCount():int
+		{
+			return elementsCount;
+		}
+		public function getMatchId():int
+		{
+			return matchId;
+		}
 		public function addBitmapAsMatch(bitmap:BitmapData, surfOptions:SURFOptions = null):void
 		{
 			if(surfOptions)
@@ -189,10 +209,11 @@ package ru.inspirit.surf_example
 				
 				pointsCount += cnt;
 			}
-			
 			matchBundle.writeBytes(data, data.position, pointsCount * POINT_SIZE);
 			
 			surf.writePointsDataToReference(pointsCount, matchBundle);
+			trace("Loaded File");
+
 			writeBundleToMemory = false;
 		}
 		
@@ -206,7 +227,7 @@ package ru.inspirit.surf_example
 			var el:MatchElement;
 			
 			ba.writeInt(n);
-			
+
 			for(var i:int = 0; i < n; ++i)
 			{
 				el = elements[i];
