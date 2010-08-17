@@ -47,7 +47,8 @@
 		private var fullrez:Sprite = new Sprite();
 		private var smallrez:Sprite = new Sprite();
 		private var mainScreen:Sprite = new Sprite();
-		
+		private var black:Sprite = new Sprite();
+
 		private var c =0;
 		private var s =0;
 		
@@ -79,7 +80,11 @@
 		
 		protected var caseNum = "1";
 		
-		protected var oldCase = 1;
+		protected var oldCase = 0;
+		
+		var total = 0;
+		var loaded = 0;
+
 
 		
 		public function AsRocks()
@@ -90,13 +95,13 @@
 			}	
 			
 			pageNum = 0;
-			
 			addChild(textArea);
-			
-			
+			textArea.visible = false;
+
 			addChild(smallrez);
 			addChild(imageArea);
-			
+			imageArea.visible = false;
+
 			addChild(fullrez);
 			
 			addChild(mainScreen);
@@ -113,7 +118,7 @@
 			imageArea.addEventListener(MouseEvent.CLICK, enlargeButton);
 			
 			view = new Sprite();
-			view.y = 80;
+			view.y = 380;
 			view.x = 680;
 			
 			screenBmp = new Bitmap();
@@ -141,7 +146,7 @@
 			buffer.lock();
 			
 			quasimondoProcessor = new QuasimondoImageProcessor(buffer.rect);
-			//addChild(view);
+			addChild(view);
 			
 			matchList = new MatchList(surf);
 			
@@ -153,11 +158,14 @@
 		private function processXML(e:Event):void {
 			
 			myXML = new XML(e.target.data);
+			total = myXML.column[0].specimen.length() + myXML.column[1].specimen.length() + myXML.column[2].specimen.length() + myXML.column[3].specimen.length();
+			loaded = 0;
 			loadAll();
 			//dataLoadRequest();
 		}
 		private function loadPage():void{
 			
+
 			if (matchList.getMatchId() <= 3){
 				
 				caseNum = matchList.getMatchId() + 1;
@@ -167,13 +175,16 @@
 					var myLoader:URLLoader = new URLLoader();
 					myLoader.load(new URLRequest("../../../Case"+caseNum+"/Case"+caseNum+".xml"));
 					myLoader.addEventListener(Event.COMPLETE, processXML);
-					
-					trace("../../../Case"+caseNum+"/Case"+caseNum+".xml");
 
-								
+					textArea.visible = false;
+					mainScreen.alpha = 0;
+
+					view.visible = false;
+					//camera.active = false;
+					
+					trace("../../../Case"+caseNum+"/Case"+caseNum+".xml");						
 				}
-				
-				
+					
 				oldCase = caseNum;
 
 			}
@@ -200,18 +211,18 @@
 		private function loadAll():void{
 
 			pageNum = 0;
-
 			
+
 			for (var y=0; y<=3;y++){
 				for (var x=0;x < myXML.column[y].specimen.length();x++){
-					
 					loadImage(25 + (x*25),100+(y*25),20,20,"../../../Case"+caseNum+"/images/specimens/preview/" + myXML.column[y].specimen[x].images.full,y,x);
-					trace(myXML.column[y].specimen.length());
 					s++;
+
 				}
 				c++;
 				s = 0;
 			}
+			
 			
 			menuArea.page3.alpha = 1;
 			menuArea.page1.alpha = 0.22;
@@ -248,7 +259,6 @@
 			
 			loadImage(128,75,768,768,URL,c,s);
 			
-			fullrez.visible = true;
 			smallrez.visible =false;
 			imageArea.visible = false;
 		}
@@ -273,34 +283,39 @@
 				myBitmap.bitmapData = myBitmapData;
 				
 				mySprite.addChild(myBitmap);
-				
-				trace(c + " " + s);
 	
 				matchName[c][s] = mySprite;
 				
 				matchName[c][s].addEventListener(MouseEvent.CLICK, clickMatch);
 				
+				loaded++;
 	
 				if (pageNum == 1){
 					smallrez.addChild(myBitmap);
+					smallrez.visible = true;
+
 				}
 				if( pageNum == 2){
 					fullrez.addChild(myBitmap);
+					imageArea.visible = true;
+					fullrez.visible = true;
+
 				}
 				if( pageNum == 0){
 					mainScreen.addChild(matchName[c][s]);
+
 				}
-					fullrez.useHandCursor = true;
 				
 					myBitmap.x = x;
 					myBitmap.y = y;
 				
-					if (width != 0){
-						myBitmap.width = width;
-						myBitmap.height = height;
-					}
-					
-	
+				if (width != 0){
+					myBitmap.width = width;
+					myBitmap.height = height;
+				}
+				mainScreen.alpha = (loaded/total);
+
+				trace("Total:" + total + "   Loaded " + loaded);
 					
 			}
 		}
@@ -319,7 +334,7 @@
 			
 			imageArea.gotoAndPlay(1);
 			
-			trace("Specimin: " + s + " Column: " + c);
+			//trace("Specimin: " + s + " Column: " + c);
 		}
 		private function nextRock(event:MouseEvent):void {
 			newRock();
@@ -345,13 +360,11 @@
 			
 			imageArea.gotoAndPlay(1);
 			
-			trace("Loading: " + c + " " + s);
+			//trace("Loading: " + c + " " + s);
 		
 			dataLoadRequest();
 		
 			fullrez.visible = false;
-			smallrez.visible = true;
-			imageArea.visible = true;
 			mainScreen.visible = false;
 		
 			menuArea.page1.alpha = 1;
@@ -368,6 +381,8 @@
 					c = y;
 					s = x;
 					trace("CLICKED: " + y + " " + x);
+					textArea.visible = true;
+					imageArea.visible = true;
 					menuArea.page1.addEventListener(MouseEvent.CLICK, page1Click);
 					page1();
 				}
