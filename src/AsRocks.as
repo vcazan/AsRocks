@@ -51,7 +51,6 @@
 		private var c =0;
 		private var s =0;
 		
-		private var rockNum=0;
 		
 		private var pageNum;
 		private var size:String;
@@ -274,8 +273,6 @@
 				myBitmap.bitmapData = myBitmapData;
 				
 				mySprite.addChild(myBitmap);
-				
-				rockNum = (c*8)+s;
 				
 				trace(c + " " + s);
 	
