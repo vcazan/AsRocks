@@ -48,7 +48,6 @@
 		private var smallrez:Sprite = new Sprite();
 		private var mainScreen:Sprite = new Sprite();
 		private var black:Sprite = new Sprite();
-
 		private var c =0;
 		private var s =0;
 		
@@ -164,7 +163,8 @@
 			//dataLoadRequest();
 		}
 		private function loadPage():void{
-			
+
+
 
 			if (matchList.getMatchId() <= 3){
 				
@@ -172,13 +172,16 @@
 				
 				if (caseNum != oldCase){
 					
+					black.graphics.beginFill(0,1);
+					black.graphics.drawRect(0,0,2000,2000);
+					mainScreen.addChild(black);
+					
 					var myLoader:URLLoader = new URLLoader();
 					myLoader.load(new URLRequest("../../../Case"+caseNum+"/Case"+caseNum+".xml"));
 					myLoader.addEventListener(Event.COMPLETE, processXML);
 
 					textArea.visible = false;
-					mainScreen.alpha = 0;
-
+					
 					view.visible = false;
 					//camera.active = false;
 					
@@ -215,7 +218,7 @@
 
 			for (var y=0; y<=3;y++){
 				for (var x=0;x < myXML.column[y].specimen.length();x++){
-					loadImage(25 + (x*25),100+(y*25),20,20,"../../../Case"+caseNum+"/images/specimens/preview/" + myXML.column[y].specimen[x].images.full,y,x);
+					loadImage(25 + (x*25),100+(y*25),20,20,"../../../Case"+caseNum+"/images/specimens/thumbnail/" + myXML.column[y].specimen[x].images.full,y,x);
 					s++;
 
 				}
@@ -313,8 +316,10 @@
 					myBitmap.width = width;
 					myBitmap.height = height;
 				}
-				mainScreen.alpha = (loaded/total);
+				
+				//mainScreen.alpha = (loaded/total);
 
+				
 				trace("Total:" + total + "   Loaded " + loaded);
 					
 			}
