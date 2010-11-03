@@ -4,6 +4,7 @@
 	import com.bit101.components.HUISlider;
 	import com.bit101.components.Label;
 	import com.bit101.components.PushButton;
+	import com.bit101.components.Slider;
 	import com.quasimondo.bitmapdata.CameraBitmap;
 	
 	import flash.display.*;
@@ -21,7 +22,8 @@
 	import flash.geom.Rectangle;
 	import flash.net.*;
 	import flash.utils.ByteArray;
-	
+	import fl.events.SliderEvent;
+
 	import ru.inspirit.surf.ASSURF;
 	import ru.inspirit.surf.IPoint;
 	import ru.inspirit.surf.SURFOptions;
@@ -43,6 +45,7 @@
 		private var textArea:MovieClip = new infotext() as MovieClip;	
 		private var imageArea:MovieClip = new enlarge() as MovieClip;	
 		private var menuArea:MovieClip = new menuBar() as MovieClip;	
+		private var row11:MovieClip = new row1() as MovieClip;
 		private var menuBar1:Sprite = new Sprite();
 		private var fullrez:Sprite = new Sprite();
 		private var smallrez:Sprite = new Sprite();
@@ -83,15 +86,20 @@
 		
 		var total = 0;
 		var loaded = 0;
-
-
+		
 		
 		public function AsRocks()
 		{
 
 			for(var i:int = 0; i < matchName.length; i++) {
+				
 				matchName[i] = new Array(9);
-			}	
+			}
+			
+			slider.addEventListener(SliderEvent.CHANGE, sliderChanged);
+			slider.addEventListener(SliderEvent.THUMB_DRAG, sliderDrag);
+			slider.addEventListener(SliderEvent.THUMB_PRESS, sliderPress);            
+			slider.addEventListener(SliderEvent.THUMB_RELEASE, sliderRelease);
 			
 			pageNum = 0;
 			addChild(textArea);
@@ -106,6 +114,9 @@
 			addChild(mainScreen);
 			menuBar1.addChild(menuArea);
 			addChild(menuBar1);
+			
+			addChild(slider);
+
 
 			mainScreen.graphics.beginFill(0,1);
 			mainScreen.graphics.drawRect(0,79.60,2000,2000);
@@ -153,6 +164,22 @@
 
 			
 		}
+		private function sliderDrag(e:SliderEvent):void {
+			trace(e.target.value);
+			fullrez.width = 768 + e.target.value;
+			fullrez.height = 768 + e.target.value;
+
+
+		}
+		
+		private function sliderPress(e:SliderEvent):void {
+		}
+		
+		private function sliderRelease(e:SliderEvent):void {
+		}
+		
+		private function sliderChanged(e:SliderEvent):void {
+		}
 		
 		private function processXML(e:Event):void {
 			
@@ -164,14 +191,13 @@
 		}
 		private function loadPage():void{
 
-
-
 			if (matchList.getMatchId() <= 3){
 				
 				caseNum = matchList.getMatchId() + 1;
 				
 				if (caseNum != oldCase){
 					
+
 					black.graphics.beginFill(0,1);
 					black.graphics.drawRect(0,0,2000,2000);
 					mainScreen.addChild(black);
@@ -185,7 +211,8 @@
 					view.visible = false;
 					//camera.active = false;
 					
-					trace("../../../Case"+caseNum+"/Case"+caseNum+".xml");						
+					trace("../../../Case"+caseNum+"/Case"+caseNum+".xml");		
+
 				}
 					
 				oldCase = caseNum;
@@ -210,12 +237,68 @@
 			loadPage();
 
 		}
+		private function mouseDown(event:MouseEvent):void {
+			trace(event.currentTarget);
+			row11.startDrag();
+		}
+		
+		private function mouse(event:MouseEvent):void {
+			trace(event.target);
+			if (event.target == row11.rock1){
+				c = 0;
+				s = 0;
+			}	
+			if (event.target == row11.rock2){
+				c = 0;
+				s = 1;
+			}
+	
+			if (event.target == row11.rock3){
+				c = 0;
+				s = 2;
+			}			
+			
+			if (event.target == row11.rock4){
+				c = 0;
+				s = 3;
+			}				
+			
+			if (event.target == row11.rock5){
+				c = 0;
+				s = 4;
+			}
+			this.removeChild(row11);
+
+				textArea.visible = true;
+				imageArea.visible = true;
+				menuArea.page1.addEventListener(MouseEvent.CLICK, page1Click);
+				
+				page1();
+				
+			
+			
+
+		}
+		private function mouseUp(event:MouseEvent):void {
+			row11.stopDrag();
+
+		}
 
 		private function loadAll():void{
 
 			pageNum = 0;
-			
+			this.addChild(row11);
+			row11.addEventListener(MouseEvent.MOUSE_DOWN, mouseDown) 
+			row11.rock1.addEventListener(MouseEvent.MOUSE_DOWN, mouse) 
+			row11.rock2.addEventListener(MouseEvent.MOUSE_DOWN, mouse) 
+			row11.rock3.addEventListener(MouseEvent.MOUSE_DOWN, mouse) 
+			row11.rock4.addEventListener(MouseEvent.MOUSE_DOWN, mouse) 
+			row11.rock5.addEventListener(MouseEvent.MOUSE_DOWN, mouse) 
 
+			row11.addEventListener(MouseEvent.MOUSE_UP, mouseUp) 
+
+
+			
 			for (var y=0; y<=3;y++){
 				for (var x=0;x < myXML.column[y].specimen.length();x++){
 					loadImage(25 + (x*25),100+(y*25),20,20,"../../../Case"+caseNum+"/images/specimens/thumbnail/" + myXML.column[y].specimen[x].images.full,y,x);
@@ -226,7 +309,7 @@
 				s = 0;
 			}
 			
-			
+
 			menuArea.page3.alpha = 1;
 			menuArea.page1.alpha = 0.22;
 			menuArea.page2.alpha = 1;
@@ -246,7 +329,9 @@
 			textArea.formula.text = myXML.column[c].specimen[s].all.formula;
 			textArea.features.text = myXML.column[c].specimen[s].en.feature;
 			textArea.catname.text = myXML.column[c].specimen[s].all.catnum;
+			
 			}
+			
 		}
 		private function enlargeButton(event:MouseEvent):void {
 
@@ -260,7 +345,7 @@
 
 			var URL = "../../../Case"+caseNum+"/images/specimens/full_res/" + myXML.column[c].specimen[s].images.full;
 			
-			loadImage(128,75,768,768,URL,c,s);
+			loadImage(128,0,768,768,URL,c,s);
 			
 			smallrez.visible =false;
 			imageArea.visible = false;
@@ -285,30 +370,26 @@
 	
 				myBitmap.bitmapData = myBitmapData;
 				
-				mySprite.addChild(myBitmap);
-	
-				matchName[c][s] = mySprite;
-				
-				matchName[c][s].addEventListener(MouseEvent.CLICK, clickMatch);
-				
-				loaded++;
-	
-				if (pageNum == 1){
-					smallrez.addChild(myBitmap);
-					smallrez.visible = true;
-
+				switch(pageNum){
+					case 1:
+						smallrez.addChild(myBitmap);
+						smallrez.visible = true;
+						break;
+					case 2:
+						fullrez.addChild(myBitmap);
+						imageArea.visible = true;
+						fullrez.visible = true;
+						break;
+					case 0:
+						matchName[c][s] = mySprite;
+						matchName[c][s].addEventListener(MouseEvent.CLICK, clickMatch);
+						mySprite.addChild(myBitmap);
+						loaded++;
+						
+						mainScreen.addChild(matchName[c][s]);
+						break;
+						
 				}
-				if( pageNum == 2){
-					fullrez.addChild(myBitmap);
-					imageArea.visible = true;
-					fullrez.visible = true;
-
-				}
-				if( pageNum == 0){
-					mainScreen.addChild(matchName[c][s]);
-
-				}
-				
 					myBitmap.x = x;
 					myBitmap.y = y;
 				
@@ -317,8 +398,7 @@
 					myBitmap.height = height;
 				}
 				
-				//mainScreen.alpha = (loaded/total);
-
+				mainScreen.alpha = (loaded/total);
 				
 				trace("Total:" + total + "   Loaded " + loaded);
 					
@@ -327,6 +407,7 @@
 		
 
 		private function newRock():void {
+			
 			if (s == myXML.column[c].specimen.length()){
 				c++;
 				if (c == 4){
@@ -346,13 +427,17 @@
 		}
 		
 		private function page1Click(event:MouseEvent):void {
-			page1();
+			//page1();
+			this.addChild(row11);
+			row11.stopDrag();
 		}
 		
 		private function page3Click(event:MouseEvent):void {
+			
 			menuArea.page3.alpha = 1;
 			menuArea.page1.alpha = 0.22;
 			menuArea.page2.alpha = 1;
+			
 			mainScreen.visible = true;
 			smallrez.visible = false;
 			imageArea.visible = false;
@@ -365,8 +450,6 @@
 			
 			imageArea.gotoAndPlay(1);
 			
-			//trace("Loading: " + c + " " + s);
-		
 			dataLoadRequest();
 		
 			fullrez.visible = false;
@@ -380,16 +463,19 @@
 		
 		private function clickMatch(event:MouseEvent):void {
 			for (var y=0; y<=3;y++){
-				
 				for (var x=0;x<myXML.column[y].specimen.length();x++){
+
 				if (event.target == matchName[y][x]){
+					
 					c = y;
 					s = x;
 					trace("CLICKED: " + y + " " + x);
 					textArea.visible = true;
 					imageArea.visible = true;
 					menuArea.page1.addEventListener(MouseEvent.CLICK, page1Click);
+
 					page1();
+					
 				}
 				}
 			}
